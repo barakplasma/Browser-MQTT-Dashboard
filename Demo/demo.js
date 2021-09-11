@@ -178,7 +178,7 @@ openRequest.onsuccess = function(e) {
 
   allData.onsuccess = function() {
     console.table(allData.result);
-    allData.result.reverse().forEach(row => {
+    allData.result.forEach(row => {
       let created = new Date(row.Time + ".00+01:00");
 
       myChart.data.datasets[0].data.push({
