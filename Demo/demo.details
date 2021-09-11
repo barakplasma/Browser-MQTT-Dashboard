@@ -1,3 +1,4 @@
+/*
 ---
  name: MQTT BME680 Data Dashboard
  description: stores MQTT messages relayed from a Tasmota ESP8266 and displays them on a realtime graph and table dashboard
@@ -10,3 +11,4 @@
    - https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon@1.0.0
    - https://cdn.jsdelivr.net/npm/chartjs-plugin-streaming@2.0.0
    - https://unpkg.com/mvp.css
+*/
