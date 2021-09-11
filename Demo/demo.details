@@ -10,6 +10,3 @@
    - https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon@1.0.0
    - https://cdn.jsdelivr.net/npm/chartjs-plugin-streaming@2.0.0
    - https://unpkg.com/mvp.css
- normalize_css: no
- load_type: d
- ...
