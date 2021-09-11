@@ -163,7 +163,11 @@ function addRow(row) {
 
   newRow.appendChild(hum)
 
-  document.querySelector('table').appendChild(newRow)
+  insertAfter(newRow, document.querySelector('table tr'))
+}
+
+function insertAfter(newNode, existingNode) {
+    existingNode.parentNode.insertBefore(newNode, existingNode.nextSibling);
 }
 
 openRequest.onsuccess = function(e) {
@@ -175,31 +179,22 @@ openRequest.onsuccess = function(e) {
 
   allData.onsuccess = function() {
     console.table(allData.result);
-    allData.result.forEach(row => {
+    allData.result.reverse().forEach(row => {
       let created = new Date(row.Time + ".00+01:00");
-      //  console.log(created.toString())
 
       myChart.data.datasets[0].data.push({
-
         x: created,
-
         y: row.BME680.Gas
-
       });
 
       myChart.data.datasets[1].data.push({
-
         x: created,
         y: row.BME680.Temperature
-
       });
 
       myChart.data.datasets[2].data.push({
-
         x: created,
-
         y: row.BME680.Humidity
-
       });
     })
     allData.result.forEach(
