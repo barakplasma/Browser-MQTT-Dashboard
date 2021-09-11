@@ -67,8 +67,7 @@ var myChart = new Chart(ctx, {
       x: {
         type: 'realtime', // x axis will auto-scroll from right to left
         realtime: { // per-axis options
-          duration: 6e5,
-          /*           refresh: 1000,    // onRefresh callback will be called every 1000 ms */
+          duration: 6e6,
           delay: 1e4, // delay of 1000 ms, so upcoming values are known before plotting a line
           pause: false, // chart is not paused
           ttl: undefined, // data will be automatically deleted as it disappears off the chart
