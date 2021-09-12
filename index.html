@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Browser MQTT Dashboard</title>
+  <script defer src="./Demo/demo.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mqtt/4.2.8/mqtt.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@3.3.2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/luxon@1.27.0"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon@1.0.0"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-streaming@2.0.0"></script>
+  <link rel="stylesheet" href="https://unpkg.com/mvp.css">
+</head>
+<body>
+  <main>
+    <section>
+      <canvas id="myChart" style="display: block; box-sizing: border-box; height: 100%; width: 100%;" width="600" height="300"></canvas>
+    </section>
+    <section>
+      <table>
+        <th>datetime</th>
+        <th>gas</th>
+        <th>temperature</th>
+        <th>humidity</th>
+      </table>
+    </section>
+  </main>
+  
+</body>
+</html>
