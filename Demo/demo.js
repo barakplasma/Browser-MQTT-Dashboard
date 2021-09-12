@@ -106,6 +106,8 @@ function onReceive(event) {
 
   }
 
+  delete data.BME680;
+
   db.transaction(["data"], "readwrite").objectStore("data")
     .add(data);
 
