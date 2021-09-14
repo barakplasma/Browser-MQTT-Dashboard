@@ -78,23 +78,29 @@ var myChart = new Chart(ctx, {
   }
 });
 
-// your event listener code - assuming the event object has the timestamp and value properties
-function onReceive(event) {
-  const created = Date.now();
+function addDataToChart(row) {
+  let created = new Date(row.Time + ".00+01:00");
 
   // append the new data to the existing chart data
   myChart.data.datasets[0].data.push({
     x: created,
-    y: event.Gas
+    y: row.Gas
   });
   myChart.data.datasets[1].data.push({
     x: created,
-    y: event.Temperature
+    y: row.Temperature
   });
   myChart.data.datasets[2].data.push({
     x: created,
-    y: event.Humidity
+    y: row.Humidity
   });
+}
+
+// your event listener code - assuming the event object has the timestamp and value properties
+function onReceive(event) {
+  const created = Date.now();
+
+  addDataToChart(event);
 
   const data = {
 
@@ -111,7 +117,7 @@ function onReceive(event) {
   db.transaction(["data"], "readwrite").objectStore("data")
     .add(data);
 
-  addRow(data)
+  addRowToTable(data)
 
   // update chart datasets keeping the current animation
   myChart.update('quiet');
@@ -136,7 +142,7 @@ openRequest.onupgradeneeded = function(e) {
   }
 }
 
-function addRow(row) {
+function addRowToTable(row) {
 
   let newRow = document.createElement('tr');
 
@@ -180,27 +186,8 @@ openRequest.onsuccess = function(e) {
 
   allData.onsuccess = function() {
     console.table(allData.result);
-    allData.result.forEach(row => {
-      let created = new Date(row.Time + ".00+01:00");
-
-      myChart.data.datasets[0].data.push({
-        x: created,
-        y: row.BME680.Gas
-      });
-
-      myChart.data.datasets[1].data.push({
-        x: created,
-        y: row.BME680.Temperature
-      });
-
-      myChart.data.datasets[2].data.push({
-        x: created,
-        y: row.BME680.Humidity
-      });
-    })
-    allData.result.forEach(
-      addRow
-    )
+    allData.result.forEach(addDataToChart);
+    allData.result.forEach(addRowToTable)
   };
 }
 
