@@ -85,15 +85,15 @@ function onReceive(event) {
   // append the new data to the existing chart data
   myChart.data.datasets[0].data.push({
     x: created,
-    y: event.BME680.Gas
+    y: event.Gas
   });
   myChart.data.datasets[1].data.push({
     x: created,
-    y: event.BME680.Temperature
+    y: event.Temperature
   });
   myChart.data.datasets[2].data.push({
     x: created,
-    y: event.BME680.Humidity
+    y: event.Humidity
   });
 
   const data = {
