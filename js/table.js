@@ -1,6 +1,9 @@
 const tableBody = document.getElementById('tableBody')
 
 export function updateTable(data) {
+  // Always clear the table first
+  tableBody.innerHTML = ''
+
   if (!data.temperatures || data.temperatures.length === 0) {
     tableBody.innerHTML = '<tr class="empty-state"><td colspan="4">Waiting for data...</td></tr>'
     return

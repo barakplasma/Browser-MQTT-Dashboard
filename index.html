@@ -429,7 +429,11 @@
     updateUI()
 
     // Setup MQTT handlers
+    let mqttPaused = false
+
     MqttService.on('onMessage', async (data) => {
+      if (mqttPaused) return // Don't process if paused
+
       // Add browser timestamp immediately to ensure correct local time
       const dataWithTimestamp = {
         ...data,
@@ -461,13 +465,22 @@
     // Setup event listeners
     elements.clearBtn.addEventListener('click', clearAllData)
 
-    // Add test data button for demo (remove in production)
+    // Add control buttons
+    const pauseBtn = document.createElement('button')
+    pauseBtn.textContent = 'Pause MQTT'
+    pauseBtn.className = 'btn'
+    pauseBtn.style.marginRight = '10px'
+    pauseBtn.addEventListener('click', toggleMqtt)
+
     const testBtn = document.createElement('button')
     testBtn.textContent = 'Load Test Data'
     testBtn.className = 'btn'
     testBtn.style.marginRight = '10px'
     testBtn.addEventListener('click', loadTestData)
-    document.querySelector('footer').insertBefore(testBtn, elements.clearBtn)
+
+    const footer = document.querySelector('footer')
+    footer.insertBefore(pauseBtn, elements.clearBtn)
+    footer.insertBefore(testBtn, elements.clearBtn)
 
     // Helper functions
     function addDataToState(data) {
@@ -521,8 +534,14 @@
     }
 
     async function clearAllData() {
-      if (confirm('Are you sure you want to clear all data?')) {
+      if (confirm('Are you sure you want to clear all data? MQTT will be paused to prevent new data from coming in.')) {
+        // Pause MQTT to prevent new data
+        mqttPaused = true
+
+        // Clear database
         await DatabaseService.clearData()
+
+        // Clear in-memory data
         state.dataPoints = 0
         state.data = {
           temperatures: [],
@@ -530,8 +549,16 @@
           gases: [],
           timestamps: []
         }
+
         updateUI()
+        alert('✓ Data cleared and MQTT paused.\n\nClick "Resume MQTT" button to start receiving data again.')
       }
+    }
+
+    function toggleMqtt() {
+      mqttPaused = !mqttPaused
+      pauseBtn.textContent = mqttPaused ? 'Resume MQTT' : 'Pause MQTT'
+      pauseBtn.style.background = mqttPaused ? '#28a745' : '#6c757d'
     }
 
     function loadTestData() {
