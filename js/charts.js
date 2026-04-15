@@ -44,8 +44,13 @@ function updateTemperatureChart(temperatures, timestamps) {
       type: 'time',
       boundaryGap: false,
       axisLabel: {
-        formatter: (value) => new Date(value).toLocaleTimeString(),
-        interval: 'auto'
+        formatter: (value) => {
+          const date = new Date(value)
+          return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+        },
+        interval: 'auto',
+        rotate: 45,
+        fontSize: 11
       }
     },
     yAxis: {
@@ -104,8 +109,13 @@ function updateHumidityChart(humidities, timestamps) {
       type: 'time',
       boundaryGap: false,
       axisLabel: {
-        formatter: (value) => new Date(value).toLocaleTimeString(),
-        interval: 'auto'
+        formatter: (value) => {
+          const date = new Date(value)
+          return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+        },
+        interval: 'auto',
+        rotate: 45,
+        fontSize: 11
       }
     },
     yAxis: {
@@ -166,8 +176,13 @@ function updateGasChart(gases, timestamps) {
       type: 'time',
       boundaryGap: false,
       axisLabel: {
-        formatter: (value) => new Date(value).toLocaleTimeString(),
-        interval: 'auto'
+        formatter: (value) => {
+          const date = new Date(value)
+          return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+        },
+        interval: 'auto',
+        rotate: 45,
+        fontSize: 11
       }
     },
     yAxis: {
