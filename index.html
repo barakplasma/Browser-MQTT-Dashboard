@@ -1,35 +1,453 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Browser MQTT Dashboard</title>
-  <script defer src="./Demo/demo.js"></script>
+  <title>Browser MQTT Dashboard v2</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mqtt/5.5.2/mqtt.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3"></script>
-  <script src="https://cdn.jsdelivr.net/npm/luxon@3.4.1"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon@1.3.1"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@aziham/chartjs-plugin-streaming@3.5.1"></script>
-  <link rel="stylesheet" href="https://unpkg.com/mvp.css@1.13">
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/luxon@3.4.1/build/global/luxon.min.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    header {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      padding: 30px 20px;
+      border-radius: 12px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+      margin-bottom: 20px;
+    }
+
+    .header-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+    }
+
+    header h1 {
+      font-size: 2.5em;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin: 0;
+    }
+
+    .status {
+      display: flex;
+      gap: 20px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .status-badge {
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-weight: 600;
+      font-size: 0.9em;
+      transition: all 0.3s ease;
+    }
+
+    .status-badge.connected {
+      background: #d4edda;
+      color: #155724;
+    }
+
+    .status-badge.disconnected {
+      background: #f8d7da;
+      color: #721c24;
+    }
+
+    .data-count {
+      font-size: 0.95em;
+      color: #666;
+      font-weight: 500;
+    }
+
+    .charts-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+
+    .chart-card {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .chart-card h2 {
+      font-size: 1.1em;
+      color: #333;
+      margin: 0;
+    }
+
+    .chart {
+      width: 100%;
+      height: 300px;
+    }
+
+    .table-card {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+      margin-bottom: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .table-card h2 {
+      font-size: 1.3em;
+      color: #333;
+      margin: 0;
+    }
+
+    .table-scroll {
+      flex: 1;
+      overflow-y: auto;
+      border-radius: 8px;
+      background: #fafafa;
+      max-height: 400px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9em;
+    }
+
+    thead {
+      position: sticky;
+      top: 0;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      z-index: 10;
+    }
+
+    th {
+      padding: 12px;
+      text-align: left;
+      color: white;
+      font-weight: 600;
+    }
+
+    td {
+      padding: 12px;
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    tbody tr:hover {
+      background-color: #f5f5f5;
+    }
+
+    tbody tr td:first-child {
+      font-family: 'Monaco', 'Menlo', monospace;
+      color: #666;
+      font-size: 0.85em;
+    }
+
+    .gas {
+      color: #ef5350;
+      font-weight: 600;
+    }
+
+    .temperature {
+      color: #ffa726;
+      font-weight: 600;
+    }
+
+    .humidity {
+      color: #42a5f5;
+      font-weight: 600;
+    }
+
+    .empty-state {
+      text-align: center;
+      color: #999;
+      font-style: italic;
+      padding: 40px 12px;
+    }
+
+    footer {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      padding: 20px 0;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      display: inline-block;
+      background: #6c757d;
+      color: white;
+    }
+
+    .btn:hover {
+      background: #5a6268;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);
+    }
+
+    .btn-danger {
+      background: #dc3545;
+    }
+
+    .btn-danger:hover {
+      background: #c82333;
+      box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+    }
+
+    /* Scrollbar styling */
+    .table-scroll::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .table-scroll::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 10px;
+    }
+
+    .table-scroll::-webkit-scrollbar-thumb {
+      background: #888;
+      border-radius: 10px;
+    }
+
+    .table-scroll::-webkit-scrollbar-thumb:hover {
+      background: #555;
+    }
+
+    @media (max-width: 768px) {
+      header {
+        padding: 20px;
+      }
+
+      .header-content {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      header h1 {
+        font-size: 1.8em;
+      }
+
+      .charts-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
 </head>
-
 <body>
-  <section>
-    <h1>Browser MQTT Dashboard</h1>
-    <h6><a href="https://github.com/barakplasma/Browser-MQTT-Dashboard/">About</a></h6>
-    <canvas id="myChart" style="display: block; box-sizing: border-box; height: 100%; width: 100%; padding: 2%;" width="600"
-      height="300"></canvas>
-  </section>
-  <section>
-    <table>
-      <th>datetime</th>
-      <th>gas</th>
-      <th>temperature</th>
-      <th>humidity</th>
-    </table>
-  </section>
-</body>
+  <div class="container">
+    <header>
+      <div class="header-content">
+        <h1>📊 Browser MQTT Dashboard</h1>
+        <div class="status">
+          <span id="statusBadge" class="status-badge disconnected">● Disconnected</span>
+          <span id="dataCount" class="data-count">0 readings</span>
+        </div>
+      </div>
+    </header>
 
+    <div class="charts-grid">
+      <div class="chart-card">
+        <h2>🌡️ Temperature (°C)</h2>
+        <div id="temperatureChart" class="chart"></div>
+      </div>
+
+      <div class="chart-card">
+        <h2>💨 Humidity (%)</h2>
+        <div id="humidityChart" class="chart"></div>
+      </div>
+
+      <div class="chart-card">
+        <h2>⚡ Gas Resistance (Ω)</h2>
+        <div id="gasChart" class="chart"></div>
+      </div>
+    </div>
+
+    <div class="table-card">
+      <h2>Recent Readings</h2>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>Gas (Ω)</th>
+              <th>Temp (°C)</th>
+              <th>Humidity (%)</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody">
+            <tr class="empty-state">
+              <td colspan="4">Waiting for data...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <footer>
+      <button id="clearBtn" class="btn btn-danger">Clear Data</button>
+      <a href="https://github.com/barakplasma/Browser-MQTT-Dashboard" target="_blank" class="btn">
+        GitHub
+      </a>
+    </footer>
+  </div>
+
+  <script type="module">
+    import MqttService from './js/mqtt.js'
+    import DatabaseService from './js/database.js'
+    import { initCharts, updateCharts } from './js/charts.js'
+    import { updateTable } from './js/table.js'
+
+    const state = {
+      isConnected: false,
+      dataPoints: 0,
+      data: {
+        temperatures: [],
+        humidities: [],
+        gases: [],
+        timestamps: []
+      }
+    }
+
+    const elements = {
+      statusBadge: document.getElementById('statusBadge'),
+      dataCount: document.getElementById('dataCount'),
+      clearBtn: document.getElementById('clearBtn')
+    }
+
+    // Initialize charts
+    initCharts()
+
+    // Initialize database
+    await DatabaseService.init()
+
+    // Load historical data
+    const historicalData = await DatabaseService.getAllData()
+    historicalData.forEach(addDataToState)
+    updateUI()
+
+    // Setup MQTT handlers
+    MqttService.on('onMessage', async (data) => {
+      addDataToState(data)
+      await DatabaseService.addData(data)
+      updateUI()
+    })
+
+    MqttService.on('onConnect', (clientId) => {
+      state.isConnected = true
+      console.log('Connected:', clientId)
+      updateStatus()
+    })
+
+    MqttService.on('onError', (err) => {
+      console.error('MQTT Error:', err)
+    })
+
+    MqttService.on('onDisconnect', () => {
+      state.isConnected = false
+      updateStatus()
+    })
+
+    // Connect to MQTT
+    MqttService.connect()
+
+    // Setup event listeners
+    elements.clearBtn.addEventListener('click', clearAllData)
+
+    // Helper functions
+    function addDataToState(data) {
+      const timestamp = new Date(data.Time || new Date()).getTime()
+
+      state.data.timestamps.push(timestamp)
+      state.data.temperatures.push({
+        x: timestamp,
+        y: data.Temperature || 0
+      })
+      state.data.humidities.push({
+        x: timestamp,
+        y: data.Humidity || 0
+      })
+      state.data.gases.push({
+        x: timestamp,
+        y: data.Gas || data.BME680?.Resistance || 0
+      })
+
+      // Keep last 500 points in memory
+      if (state.data.timestamps.length > 500) {
+        state.data.timestamps.shift()
+        state.data.temperatures.shift()
+        state.data.humidities.shift()
+        state.data.gases.shift()
+      }
+
+      state.dataPoints++
+    }
+
+    function updateStatus() {
+      if (state.isConnected) {
+        elements.statusBadge.textContent = '● Connected'
+        elements.statusBadge.className = 'status-badge connected'
+      } else {
+        elements.statusBadge.textContent = '● Disconnected'
+        elements.statusBadge.className = 'status-badge disconnected'
+      }
+    }
+
+    function updateUI() {
+      updateStatus()
+      elements.dataCount.textContent = `${state.dataPoints} readings`
+      updateCharts(state.data)
+      updateTable(state.data)
+    }
+
+    async function clearAllData() {
+      if (confirm('Are you sure you want to clear all data?')) {
+        await DatabaseService.clearData()
+        state.dataPoints = 0
+        state.data = {
+          temperatures: [],
+          humidities: [],
+          gases: [],
+          timestamps: []
+        }
+        updateUI()
+      }
+    }
+  </script>
+</body>
 </html>
