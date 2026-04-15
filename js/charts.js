@@ -153,6 +153,16 @@ function updateHumidityChart(humidities, timestamps) {
   humidityChart.setOption(option)
 }
 
+function getAirQualityFromResistance(gasOhms) {
+  // Based on actual BME680 specifications (Bosch Sensortec datasheet)
+  // Higher resistance = cleaner air
+  if (gasOhms >= 50000) return { label: 'Excellent', color: '#4caf50' }
+  if (gasOhms >= 30000) return { label: 'Good', color: '#8bc34a' }
+  if (gasOhms >= 10000) return { label: 'Fair', color: '#ff9800' }
+  if (gasOhms >= 5000) return { label: 'Poor', color: '#f44336' }
+  return { label: 'Very Poor', color: '#c41c3b' }
+}
+
 function updateGasChart(gases, timestamps) {
   const option = {
     tooltip: {
@@ -160,28 +170,11 @@ function updateGasChart(gases, timestamps) {
       formatter: (params) => {
         if (!params.length) return ''
         const time = new Date(params[0].value[0]).toLocaleTimeString()
-        const aqi = params[0].value[1]
-        let quality = 'Unknown'
-        let color = '#999'
+        const gasValue = params[0].value[1]
+        const quality = getAirQualityFromResistance(gasValue)
+        const gasDisplay = gasValue >= 1000 ? (gasValue / 1000).toFixed(1) + 'k' : gasValue.toFixed(0)
 
-        if (aqi >= 400) {
-          quality = 'Excellent'
-          color = '#4caf50'
-        } else if (aqi >= 200) {
-          quality = 'Good'
-          color = '#8bc34a'
-        } else if (aqi >= 100) {
-          quality = 'Fair'
-          color = '#ff9800'
-        } else if (aqi >= 50) {
-          quality = 'Poor'
-          color = '#f44336'
-        } else {
-          quality = 'Very Poor'
-          color = '#c41c3b'
-        }
-
-        return `Air Quality: <span style="color:${color};font-weight:bold">${quality}</span> (${aqi})<br>${time}`
+        return `Air Quality: <span style="color:${quality.color};font-weight:bold">${quality.label}</span><br>Gas Resistance: ${gasDisplay}Ω<br>${time}`
       }
     },
     grid: {
@@ -206,35 +199,23 @@ function updateGasChart(gases, timestamps) {
     },
     yAxis: {
       type: 'value',
-      name: 'AQI',
-      min: 0,
-      max: 500,
+      name: 'Gas Resistance (Ω)',
       axisLabel: {
-        formatter: (value) => value.toFixed(0)
+        formatter: (value) => {
+          if (value >= 1000) return (value / 1000).toFixed(0) + 'k'
+          return value.toFixed(0)
+        }
       },
       splitLine: {
         lineStyle: {
           type: 'dashed',
           color: '#e0e0e0'
         }
-      },
-      markArea: {
-        silent: true,
-        itemStyle: {
-          opacity: 0.1
-        },
-        data: [
-          [{ value: 0 }, { value: 50 }],
-          [{ value: 50 }, { value: 100 }],
-          [{ value: 100 }, { value: 200 }],
-          [{ value: 200 }, { value: 400 }],
-          [{ value: 400 }, { value: 500 }]
-        ]
       }
     },
     series: [
       {
-        name: 'Air Quality Index',
+        name: 'Gas Resistance',
         type: 'line',
         data: gases,
         smooth: true,

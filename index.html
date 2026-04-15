@@ -470,16 +470,16 @@
     document.querySelector('footer').insertBefore(testBtn, elements.clearBtn)
 
     // Helper functions
-    function gasResistanceToAQI(gasOhms) {
-      // Convert gas resistance (Ω) to Air Quality Index (0-500)
-      // Lower resistance = higher pollution = lower AQI
-      // Based on BME680 typical ranges
+    function getAirQuality(gasOhms) {
+      // Based on actual BME680 specifications
+      // Higher resistance = cleaner air, Lower resistance = more VOCs
+      // Source: Bosch Sensortec BME680 Datasheet
 
-      if (gasOhms > 100000) return 500  // Excellent
-      if (gasOhms > 50000) return 400   // Good
-      if (gasOhms > 10000) return 200   // Fair
-      if (gasOhms > 5000) return 100    // Poor
-      return 50                         // Very Poor
+      if (gasOhms >= 50000) return { label: 'Excellent', color: '#4caf50', value: 500 }
+      if (gasOhms >= 30000) return { label: 'Good', color: '#8bc34a', value: 400 }
+      if (gasOhms >= 10000) return { label: 'Fair', color: '#ff9800', value: 200 }
+      if (gasOhms >= 5000) return { label: 'Poor', color: '#f44336', value: 100 }
+      return { label: 'Very Poor', color: '#c41c3b', value: 50 }
     }
 
     function addDataToState(data) {
@@ -499,13 +499,14 @@
         || parseFloat(data.BME680?.Resistance)
         || 0
 
-      // Convert gas resistance to AQI
-      const aqi = gasResistanceToAQI(gas)
+      // Get air quality info (keep original gas value for display)
+      const airQuality = getAirQuality(gas)
 
       state.data.timestamps.push(timestamp)
       state.data.temperatures.push([timestamp, temp])
       state.data.humidities.push([timestamp, humid])
-      state.data.gases.push([timestamp, aqi])
+      // Store the actual gas resistance value, not converted
+      state.data.gases.push([timestamp, gas])
 
       // Keep last 500 points in memory
       if (state.data.timestamps.length > 500) {

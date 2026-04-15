@@ -1,10 +1,12 @@
 const tableBody = document.getElementById('tableBody')
 
-function getAirQualityLabel(aqi) {
-  if (aqi >= 400) return { label: 'Excellent', color: '#4caf50' }
-  if (aqi >= 200) return { label: 'Good', color: '#8bc34a' }
-  if (aqi >= 100) return { label: 'Fair', color: '#ff9800' }
-  if (aqi >= 50) return { label: 'Poor', color: '#f44336' }
+function getAirQualityLabel(gasOhms) {
+  // Based on actual BME680 specifications (Bosch Sensortec datasheet)
+  // Higher resistance = cleaner air
+  if (gasOhms >= 50000) return { label: 'Excellent', color: '#4caf50' }
+  if (gasOhms >= 30000) return { label: 'Good', color: '#8bc34a' }
+  if (gasOhms >= 10000) return { label: 'Fair', color: '#ff9800' }
+  if (gasOhms >= 5000) return { label: 'Poor', color: '#f44336' }
   return { label: 'Very Poor', color: '#c41c3b' }
 }
 
