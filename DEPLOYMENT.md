@@ -158,21 +158,25 @@ For public/internet use:
 - [ ] Test with sample data before deploying
 - [ ] Update README with your broker details if custom
 
-## 🔧 Environment Variables (Optional)
+## 🔧 Configuration (No Build Step Required)
 
-For sensitive configurations, you can use environment variables in Vercel:
+Since this is a buildless client-side app, there's no environment variable system. To customize settings:
 
-1. Go to Vercel Project Settings → Environment Variables
-2. Add variables like:
-   - `MQTT_BROKER_URL`
-   - `MQTT_TOPIC`
-3. In your JavaScript, access them via:
-   ```javascript
-   const brokerUrl = process.env.MQTT_BROKER_URL
-   const topic = process.env.MQTT_TOPIC
-   ```
+**Option 1: Edit index.html directly**
+```javascript
+// Line 387 in index.html
+MqttService.connect(
+  'wss://your-broker.com:8084/mqtt',
+  'your/custom/topic'
+)
+```
 
-However, since this is a client-side app, these would still be visible in the browser. For truly sensitive credentials, consider a separate backend service.
+**Option 2: Host multiple versions**
+- Create `dashboard-home.html`, `dashboard-office.html`, etc.
+- Each with different broker/topic configurations
+- Deploy all versions to Vercel
+
+For truly sensitive credentials (not recommended for client-side), consider a backend relay service.
 
 ## 📊 Monitoring & Analytics (Optional)
 

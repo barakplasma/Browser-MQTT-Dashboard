@@ -32,8 +32,8 @@ class DatabaseService {
       const transaction = this.db.transaction([this.storeName], 'readwrite')
       const store = transaction.objectStore(this.storeName)
       const request = store.add({
-        ...data,
-        timestamp: Date.now()
+        timestamp: Date.now(),
+        ...data
       })
 
       request.onerror = () => reject(request.error)

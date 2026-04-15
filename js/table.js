@@ -15,9 +15,9 @@ export function updateTable(data) {
 
   for (let i = lastIndex; i >= startIndex; i--) {
     const timestamp = data.timestamps[i]
-    const temperature = data.temperatures[i]?.y || 0
-    const humidity = data.humidities[i]?.y || 0
-    const gas = data.gases[i]?.y || 0
+    const temperature = data.temperatures[i]?.[1] || 0
+    const humidity = data.humidities[i]?.[1] || 0
+    const gas = data.gases[i]?.[1] || 0
 
     const timeStr = new Date(timestamp).toLocaleTimeString()
     const gasStr = gas > 1000 ? (gas / 1000).toFixed(1) + 'k' : gas.toFixed(0)

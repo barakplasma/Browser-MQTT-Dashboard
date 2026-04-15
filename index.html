@@ -384,28 +384,19 @@
     })
 
     // Connect to MQTT
-    MqttService.connect()
+    MqttService.connect('wss://broker.emqx.io:8084/mqtt', 'tele/tasmota_145ABA/SENSOR')
 
     // Setup event listeners
     elements.clearBtn.addEventListener('click', clearAllData)
 
     // Helper functions
     function addDataToState(data) {
-      const timestamp = new Date(data.Time || new Date()).getTime()
+      const timestamp = data.timestamp || new Date(data.Time || new Date()).getTime()
 
       state.data.timestamps.push(timestamp)
-      state.data.temperatures.push({
-        x: timestamp,
-        y: data.Temperature || 0
-      })
-      state.data.humidities.push({
-        x: timestamp,
-        y: data.Humidity || 0
-      })
-      state.data.gases.push({
-        x: timestamp,
-        y: data.Gas || data.BME680?.Resistance || 0
-      })
+      state.data.temperatures.push([timestamp, data.Temperature || 0])
+      state.data.humidities.push([timestamp, data.Humidity || 0])
+      state.data.gases.push([timestamp, data.Gas || data.BME680?.Resistance || 0])
 
       // Keep last 500 points in memory
       if (state.data.timestamps.length > 500) {
