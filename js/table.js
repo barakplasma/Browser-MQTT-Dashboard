@@ -19,7 +19,12 @@ export function updateTable(data) {
     const humidity = parseFloat(data.humidities[i]?.[1]) || 0
     const gas = parseFloat(data.gases[i]?.[1]) || 0
 
-    const timeStr = new Date(timestamp).toLocaleTimeString()
+    const timeStr = new Date(timestamp).toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: true
+    })
     const gasStr = gas >= 1000 ? (gas / 1000).toFixed(2) + 'k' : gas.toFixed(0)
 
     rows.push(`

@@ -430,8 +430,13 @@
 
     // Setup MQTT handlers
     MqttService.on('onMessage', async (data) => {
-      addDataToState(data)
-      await DatabaseService.addData(data)
+      // Add browser timestamp immediately to ensure correct local time
+      const dataWithTimestamp = {
+        ...data,
+        timestamp: Date.now()
+      }
+      addDataToState(dataWithTimestamp)
+      await DatabaseService.addData(dataWithTimestamp)
       updateUI()
     })
 
