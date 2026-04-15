@@ -401,10 +401,19 @@
     function addDataToState(data) {
       const timestamp = data.timestamp || new Date(data.Time || new Date()).getTime()
 
-      // Extract values with logging for debugging
-      const temp = parseFloat(data.Temperature) || parseFloat(data.Temp) || 0
-      const humid = parseFloat(data.Humidity) || parseFloat(data.Hum) || 0
-      const gas = parseFloat(data.Gas) || parseFloat(data.BME680?.Resistance) || 0
+      // Extract values from various possible formats (Tasmota BME680, standard, etc.)
+      const temp = parseFloat(data.Temperature)
+        || parseFloat(data.Temp)
+        || parseFloat(data.BME680?.Temperature)
+        || 0
+      const humid = parseFloat(data.Humidity)
+        || parseFloat(data.Hum)
+        || parseFloat(data.BME680?.Humidity)
+        || 0
+      const gas = parseFloat(data.Gas)
+        || parseFloat(data.BME680?.Gas)
+        || parseFloat(data.BME680?.Resistance)
+        || 0
 
       state.data.timestamps.push(timestamp)
       state.data.temperatures.push([timestamp, temp])

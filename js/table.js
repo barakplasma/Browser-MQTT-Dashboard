@@ -15,12 +15,12 @@ export function updateTable(data) {
 
   for (let i = lastIndex; i >= startIndex; i--) {
     const timestamp = data.timestamps[i]
-    const temperature = data.temperatures[i]?.[1] || 0
-    const humidity = data.humidities[i]?.[1] || 0
-    const gas = data.gases[i]?.[1] || 0
+    const temperature = parseFloat(data.temperatures[i]?.[1]) || 0
+    const humidity = parseFloat(data.humidities[i]?.[1]) || 0
+    const gas = parseFloat(data.gases[i]?.[1]) || 0
 
     const timeStr = new Date(timestamp).toLocaleTimeString()
-    const gasStr = gas > 1000 ? (gas / 1000).toFixed(1) + 'k' : gas.toFixed(0)
+    const gasStr = gas >= 1000 ? (gas / 1000).toFixed(2) + 'k' : gas.toFixed(0)
 
     rows.push(`
       <tr>
