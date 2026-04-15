@@ -160,9 +160,28 @@ function updateGasChart(gases, timestamps) {
       formatter: (params) => {
         if (!params.length) return ''
         const time = new Date(params[0].value[0]).toLocaleTimeString()
-        const value = params[0].value[1]
-        const formatted = value > 1000 ? (value / 1000).toFixed(2) + 'k' : value.toFixed(0)
-        return `Gas Resistance: ${formatted}Ω<br>${time}`
+        const aqi = params[0].value[1]
+        let quality = 'Unknown'
+        let color = '#999'
+
+        if (aqi >= 400) {
+          quality = 'Excellent'
+          color = '#4caf50'
+        } else if (aqi >= 200) {
+          quality = 'Good'
+          color = '#8bc34a'
+        } else if (aqi >= 100) {
+          quality = 'Fair'
+          color = '#ff9800'
+        } else if (aqi >= 50) {
+          quality = 'Poor'
+          color = '#f44336'
+        } else {
+          quality = 'Very Poor'
+          color = '#c41c3b'
+        }
+
+        return `Air Quality: <span style="color:${color};font-weight:bold">${quality}</span> (${aqi})<br>${time}`
       }
     },
     grid: {
@@ -187,33 +206,43 @@ function updateGasChart(gases, timestamps) {
     },
     yAxis: {
       type: 'value',
-      name: 'Ω',
+      name: 'AQI',
+      min: 0,
+      max: 500,
       axisLabel: {
-        formatter: (value) => {
-          if (value > 1000) {
-            return (value / 1000).toFixed(0) + 'k'
-          }
-          return value.toFixed(0)
-        }
+        formatter: (value) => value.toFixed(0)
       },
       splitLine: {
         lineStyle: {
           type: 'dashed',
           color: '#e0e0e0'
         }
+      },
+      markArea: {
+        silent: true,
+        itemStyle: {
+          opacity: 0.1
+        },
+        data: [
+          [{ value: 0 }, { value: 50 }],
+          [{ value: 50 }, { value: 100 }],
+          [{ value: 100 }, { value: 200 }],
+          [{ value: 200 }, { value: 400 }],
+          [{ value: 400 }, { value: 500 }]
+        ]
       }
     },
     series: [
       {
-        name: 'Gas Resistance',
+        name: 'Air Quality Index',
         type: 'line',
         data: gases,
         smooth: true,
         itemStyle: {
-          color: '#ef5350'
+          color: '#ff9800'
         },
         areaStyle: {
-          color: 'rgba(239, 83, 80, 0.15)'
+          color: 'rgba(255, 152, 0, 0.15)'
         },
         lineStyle: {
           width: 2

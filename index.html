@@ -360,7 +360,7 @@
       </div>
 
       <div class="chart-card">
-        <h2>⚡ Gas Resistance (Ω)</h2>
+        <h2>💨 Air Quality Index</h2>
         <div id="gasChart" class="chart"></div>
       </div>
     </div>
@@ -470,6 +470,18 @@
     document.querySelector('footer').insertBefore(testBtn, elements.clearBtn)
 
     // Helper functions
+    function gasResistanceToAQI(gasOhms) {
+      // Convert gas resistance (Ω) to Air Quality Index (0-500)
+      // Lower resistance = higher pollution = lower AQI
+      // Based on BME680 typical ranges
+
+      if (gasOhms > 100000) return 500  // Excellent
+      if (gasOhms > 50000) return 400   // Good
+      if (gasOhms > 10000) return 200   // Fair
+      if (gasOhms > 5000) return 100    // Poor
+      return 50                         // Very Poor
+    }
+
     function addDataToState(data) {
       const timestamp = data.timestamp || new Date(data.Time || new Date()).getTime()
 
@@ -487,10 +499,13 @@
         || parseFloat(data.BME680?.Resistance)
         || 0
 
+      // Convert gas resistance to AQI
+      const aqi = gasResistanceToAQI(gas)
+
       state.data.timestamps.push(timestamp)
       state.data.temperatures.push([timestamp, temp])
       state.data.humidities.push([timestamp, humid])
-      state.data.gases.push([timestamp, gas])
+      state.data.gases.push([timestamp, aqi])
 
       // Keep last 500 points in memory
       if (state.data.timestamps.length > 500) {
@@ -539,19 +554,22 @@
       const now = Date.now()
       for (let i = 0; i < 20; i++) {
         const time = now - (20 - i) * 60000 // 20 minutes of data
+        // Vary gas resistance to show different air quality levels
+        const gasValue = i < 5 ? 80000 : i < 10 ? 40000 : i < 15 ? 8000 : 3000
+
         addDataToState({
           timestamp: time,
           Time: new Date(time).toISOString(),
           BME680: {
             Temperature: 35 + Math.sin(i / 5) * 5 + Math.random() * 2,
             Humidity: 25 + Math.cos(i / 7) * 10 + Math.random() * 3,
-            Gas: 1500 + Math.sin(i / 3) * 200 + Math.random() * 100,
+            Gas: gasValue + Math.random() * 500,
             Pressure: 1008 + Math.random() * 2
           }
         })
       }
       updateUI()
-      alert('✓ Test data loaded!\n\nYou now have 20 realistic BME680 readings.\nCharts should show temperature (35°C), humidity (25%), and gas resistance (~1500kΩ).')
+      alert('✓ Test data loaded!\n\nYou now have 20 realistic BME680 readings.\nAir Quality will vary from Excellent to Very Poor to show the range.')
     }
   </script>
 </body>

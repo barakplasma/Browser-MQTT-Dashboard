@@ -1,5 +1,13 @@
 const tableBody = document.getElementById('tableBody')
 
+function getAirQualityLabel(aqi) {
+  if (aqi >= 400) return { label: 'Excellent', color: '#4caf50' }
+  if (aqi >= 200) return { label: 'Good', color: '#8bc34a' }
+  if (aqi >= 100) return { label: 'Fair', color: '#ff9800' }
+  if (aqi >= 50) return { label: 'Poor', color: '#f44336' }
+  return { label: 'Very Poor', color: '#c41c3b' }
+}
+
 export function updateTable(data) {
   // Always clear the table first
   tableBody.innerHTML = ''
@@ -28,12 +36,14 @@ export function updateTable(data) {
       second: '2-digit',
       hour12: true
     })
-    const gasStr = gas >= 1000 ? (gas / 1000).toFixed(2) + 'k' : gas.toFixed(0)
+    const aqiData = getAirQualityLabel(gas)
 
     rows.push(`
       <tr>
         <td>${timeStr}</td>
-        <td class="gas">${gasStr}</td>
+        <td class="gas" style="background-color: ${aqiData.color}20; color: ${aqiData.color}; font-weight: bold;">
+          ${aqiData.label}
+        </td>
         <td class="temperature">${temperature.toFixed(1)}</td>
         <td class="humidity">${humidity.toFixed(1)}</td>
       </tr>
