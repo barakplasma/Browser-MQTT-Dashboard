@@ -389,14 +389,27 @@
     // Setup event listeners
     elements.clearBtn.addEventListener('click', clearAllData)
 
+    // Add test data button for demo (remove in production)
+    const testBtn = document.createElement('button')
+    testBtn.textContent = 'Load Test Data'
+    testBtn.className = 'btn'
+    testBtn.style.marginRight = '10px'
+    testBtn.addEventListener('click', loadTestData)
+    document.querySelector('footer').insertBefore(testBtn, elements.clearBtn)
+
     // Helper functions
     function addDataToState(data) {
       const timestamp = data.timestamp || new Date(data.Time || new Date()).getTime()
 
+      // Extract values with logging for debugging
+      const temp = parseFloat(data.Temperature) || parseFloat(data.Temp) || 0
+      const humid = parseFloat(data.Humidity) || parseFloat(data.Hum) || 0
+      const gas = parseFloat(data.Gas) || parseFloat(data.BME680?.Resistance) || 0
+
       state.data.timestamps.push(timestamp)
-      state.data.temperatures.push([timestamp, data.Temperature || 0])
-      state.data.humidities.push([timestamp, data.Humidity || 0])
-      state.data.gases.push([timestamp, data.Gas || data.BME680?.Resistance || 0])
+      state.data.temperatures.push([timestamp, temp])
+      state.data.humidities.push([timestamp, humid])
+      state.data.gases.push([timestamp, gas])
 
       // Keep last 500 points in memory
       if (state.data.timestamps.length > 500) {
@@ -438,6 +451,23 @@
         }
         updateUI()
       }
+    }
+
+    function loadTestData() {
+      // Generate realistic sample data for testing
+      const now = Date.now()
+      for (let i = 0; i < 20; i++) {
+        const time = now - (20 - i) * 60000 // 20 minutes of data
+        addDataToState({
+          timestamp: time,
+          Time: new Date(time).toISOString(),
+          Temperature: 20 + Math.sin(i / 5) * 5 + Math.random() * 2,
+          Humidity: 45 + Math.cos(i / 7) * 15 + Math.random() * 5,
+          Gas: 50000 + Math.sin(i / 3) * 10000 + Math.random() * 5000
+        })
+      }
+      updateUI()
+      alert('Test data loaded! You now have 20 realistic sample readings.')
     }
   </script>
 </body>
