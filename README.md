@@ -35,6 +35,23 @@ npx http-server
 
 Then visit `http://localhost:8000`
 
+### Deploy to Vercel (Recommended)
+
+Get instant preview URLs for every pull request:
+
+```bash
+npm install -g vercel
+vercel
+```
+
+Or connect your GitHub repo to [Vercel Dashboard](https://vercel.com/dashboard) for automatic deployments.
+
+**Result:** 
+- Production: `https://your-project.vercel.app`
+- PR Previews: `https://your-project-pr-1.vercel.app`
+
+See [DEPLOYMENT.md](./DEPLOYMENT.md) for detailed deployment guides (GitHub Pages, Netlify, self-hosted, etc.)
+
 ### Deploy to GitHub Pages
 Push this repository to GitHub and enable GitHub Pages in settings. The dashboard will be live at:
 ```
@@ -198,9 +215,14 @@ Charts update in real-time and automatically scroll to show the latest data.
 
 Licensed under the MIT License - see LICENSE file for details.
 
-## 🔗 Links
+## 🔗 Links & Resources
 
+**Project:**
 - [GitHub Repository](https://github.com/barakplasma/Browser-MQTT-Dashboard)
+- [Deployment Guide](./DEPLOYMENT.md) - Vercel, GitHub Pages, Netlify, self-hosted
+
+**Documentation:**
 - [ECharts Documentation](https://echarts.apache.org/)
 - [MQTT.js Repo](https://github.com/mqttjs/MQTT.js)
 - [Tasmota Documentation](https://tasmota.github.io/)
+- [MDN IndexedDB](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API)
