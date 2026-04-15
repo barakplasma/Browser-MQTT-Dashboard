@@ -127,6 +127,10 @@ Or with BME680 sensor format:
 - `Humidity`: Number (%)
 - `Gas` OR `BME680.Resistance`: Number (Ω)
 
+### BME680 Setup with Tasmota
+
+Using a BME680 sensor with Tasmota? See [this guide](https://github.com/arendst/Tasmota/discussions/23303) for integrating the BSEC library to get comprehensive air quality and gas resistance readings. The dashboard automatically handles both standard and BME680-formatted JSON payloads.
+
 ## 📂 Project Structure
 
 ```
