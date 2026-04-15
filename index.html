@@ -463,20 +463,23 @@
     }
 
     function loadTestData() {
-      // Generate realistic sample data for testing
+      // Generate realistic sample data matching Tasmota BME680 format
       const now = Date.now()
       for (let i = 0; i < 20; i++) {
         const time = now - (20 - i) * 60000 // 20 minutes of data
         addDataToState({
           timestamp: time,
           Time: new Date(time).toISOString(),
-          Temperature: 20 + Math.sin(i / 5) * 5 + Math.random() * 2,
-          Humidity: 45 + Math.cos(i / 7) * 15 + Math.random() * 5,
-          Gas: 50000 + Math.sin(i / 3) * 10000 + Math.random() * 5000
+          BME680: {
+            Temperature: 35 + Math.sin(i / 5) * 5 + Math.random() * 2,
+            Humidity: 25 + Math.cos(i / 7) * 10 + Math.random() * 3,
+            Gas: 1500 + Math.sin(i / 3) * 200 + Math.random() * 100,
+            Pressure: 1008 + Math.random() * 2
+          }
         })
       }
       updateUI()
-      alert('Test data loaded! You now have 20 realistic sample readings.')
+      alert('✓ Test data loaded!\n\nYou now have 20 realistic BME680 readings.\nCharts should show temperature (35°C), humidity (25%), and gas resistance (~1500kΩ).')
     }
   </script>
 </body>
