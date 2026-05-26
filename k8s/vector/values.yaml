@@ -4,22 +4,13 @@
 #          helm install vector vector/vector -n iot-pipeline -f k8s/vector/values.yaml
 
 # Single Deployment (not a DaemonSet — we're collecting from one remote broker, not node logs).
-role: "Agent"
+role: "Stateless-Aggregator"
 
-# Disable the default built-in config; we supply our own via the ConfigMap.
-customConfig: {}
+# Use our ConfigMap instead of the helm-managed default config.
+existingConfigMaps:
+  - vector-config
 
-# Mount our ConfigMap as the Vector config file.
-extraVolumes:
-  - name: vector-config
-    configMap:
-      name: vector-config
-
-extraVolumeMounts:
-  - name: vector-config
-    mountPath: /etc/vector/vector.toml
-    subPath: vector.toml
-    readOnly: true
+dataDir: /vector-data-dir
 
 # Inject S3 credentials from the Secret as environment variables.
 envFrom:
@@ -27,6 +18,9 @@ envFrom:
       name: vector-s3-credentials
 
 replicaCount: 1
+
+service:
+  enabled: false
 
 resources:
   requests:
