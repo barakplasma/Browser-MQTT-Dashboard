@@ -27,6 +27,9 @@ data:
       .pressure       = to_float(payload.BME680.Pressure) ?? null
       .gas_resistance = to_float(payload.BME680.Gas) ?? null
       .topic          = .topic
+
+      del(.message)
+      del(.source_type)
     '''
 
     # ── Sinks ─────────────────────────────────────────────────────────────────────
@@ -34,19 +37,20 @@ data:
     type   = "aws_s3"
     inputs = ["parse_tasmota"]
 
-    # Credentials and bucket are injected from the Secret via env vars.
     bucket = "${S3_BUCKET}"
     region = "il-central-1"
 
     # Hive-partitioned prefix — one directory per day, readable by DuckDB/Athena.
-    key_prefix        = "tasmota/year=%Y/month=%m/day=%d/"
-    filename_extension = "ndjson.gz"
+    key_prefix         = "tasmota/year=%Y/month=%m/day=%d/hour=%H/"
+    filename_extension = "csv.gz"
 
-    encoding.codec = "json"
-    compression    = "gzip"
+    compression = "gzip"
 
-    # Flush a new file every 5 minutes (~300 rows at ~1 msg/min).
-    batch.timeout_secs = 300
+    encoding.codec = "csv"
+    encoding.csv.fields = ["time", "temperature", "humidity", "dew_point", "pressure", "gas_resistance", "topic"]
+
+    # One file per hour minimum (~60 rows at ~1 msg/min).
+    batch.timeout_secs = 3600
 
     [sinks.s3_parquet.auth]
     access_key_id     = "${AWS_ACCESS_KEY_ID}"
