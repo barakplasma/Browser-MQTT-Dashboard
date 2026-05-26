@@ -1,0 +1,26 @@
+# Optional — only deploy if you want to host your own MQTT broker in-cluster.
+# Point your Tasmota sensor at the Service ClusterIP / LoadBalancer IP instead
+# of broker.emqx.io when you're ready to leave the public broker.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mosquitto-config
+  namespace: iot-pipeline
+data:
+  mosquitto.conf: |
+    listener 1883
+    protocol mqtt
+
+    persistence true
+    persistence_location /mosquitto/data/
+
+    log_dest stdout
+    log_type error
+    log_type warning
+    log_type notice
+    log_type information
+
+    # Tighten by replacing with:
+    #   password_file /mosquitto/config/passwd
+    #   allow_anonymous false
+    allow_anonymous true
