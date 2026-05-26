@@ -1,0 +1,65 @@
+# Optional — only deploy if you want to host your own MQTT broker in-cluster.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mosquitto
+  namespace: iot-pipeline
+  labels:
+    app: mosquitto
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mosquitto
+  template:
+    metadata:
+      labels:
+        app: mosquitto
+    spec:
+      containers:
+        - name: mosquitto
+          image: eclipse-mosquitto:2
+          ports:
+            - containerPort: 1883
+              name: mqtt
+          resources:
+            requests:
+              cpu: "10m"
+              memory: "32Mi"
+            limits:
+              cpu: "100m"
+              memory: "64Mi"
+          volumeMounts:
+            - name: config
+              mountPath: /mosquitto/config/mosquitto.conf
+              subPath: mosquitto.conf
+              readOnly: true
+            - name: data
+              mountPath: /mosquitto/data
+      volumes:
+        - name: config
+          configMap:
+            name: mosquitto-config
+        - name: data
+          emptyDir: {}
+          # Replace emptyDir with a PVC for durable message persistence:
+          # persistentVolumeClaim:
+          #   claimName: mosquitto-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mosquitto
+  namespace: iot-pipeline
+  labels:
+    app: mosquitto
+spec:
+  selector:
+    app: mosquitto
+  ports:
+    - name: mqtt
+      port: 1883
+      targetPort: mqtt
+  # Use ClusterIP if only Vector (in-cluster) needs to connect.
+  # Change to LoadBalancer to expose to Tasmota devices on your LAN.
+  type: ClusterIP

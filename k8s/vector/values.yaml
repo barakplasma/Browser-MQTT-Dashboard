@@ -1,0 +1,43 @@
+# Helm values for the vector/vector chart.
+# Install: helm repo add vector https://helm.vector.dev
+#          helm repo update
+#          helm install vector vector/vector -n iot-pipeline -f k8s/vector/values.yaml
+
+# Single Deployment (not a DaemonSet — we're collecting from one remote broker, not node logs).
+role: "Agent"
+
+# Disable the default built-in config; we supply our own via the ConfigMap.
+customConfig: {}
+
+# Mount our ConfigMap as the Vector config file.
+extraVolumes:
+  - name: vector-config
+    configMap:
+      name: vector-config
+
+extraVolumeMounts:
+  - name: vector-config
+    mountPath: /etc/vector/vector.toml
+    subPath: vector.toml
+    readOnly: true
+
+# Inject S3 credentials from the Secret as environment variables.
+envFrom:
+  - secretRef:
+      name: vector-s3-credentials
+
+replicaCount: 1
+
+resources:
+  requests:
+    cpu: "50m"
+    memory: "64Mi"
+  limits:
+    cpu: "200m"
+    memory: "128Mi"
+
+# Vector does not need to scrape node metrics for this use-case.
+podMonitor:
+  enabled: false
+serviceMonitor:
+  enabled: false

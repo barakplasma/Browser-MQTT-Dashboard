@@ -1,0 +1,58 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: vector-config
+  namespace: iot-pipeline
+data:
+  vector.toml: |
+    # ── Sources ──────────────────────────────────────────────────────────────────
+    [sources.tasmota_mqtt]
+    type      = "mqtt"
+    host      = "broker.emqx.io"
+    port      = 1883
+    topic     = "tele/tasmota_145ABA/SENSOR"
+    client_id = "vector-tasmota-k8s"
+
+    # ── Transforms ───────────────────────────────────────────────────────────────
+    [transforms.parse_tasmota]
+    type   = "remap"
+    inputs = ["tasmota_mqtt"]
+    source = '''
+      payload = parse_json!(string!(.message))
+
+      .time           = to_timestamp!(payload.Time, format: "%Y-%m-%dT%H:%M:%S")
+      .temperature    = to_float!(payload.Temperature)
+      .humidity       = to_float!(payload.Humidity)
+      # BME680 exposes resistance under payload.BME680.Resistance;
+      # fall back to top-level Gas field for other sensor variants.
+      .gas_resistance = to_float(payload.BME680.Resistance) ??
+                        to_float(payload.Gas) ??
+                        null
+      .topic          = .topic
+    '''
+
+    # ── Sinks ─────────────────────────────────────────────────────────────────────
+    [sinks.s3_parquet]
+    type   = "aws_s3"
+    inputs = ["parse_tasmota"]
+
+    # Credentials and bucket are injected from the Secret via env vars.
+    bucket   = "${S3_BUCKET}"
+    endpoint = "${S3_ENDPOINT}"
+
+    # "auto" is accepted by Cloudflare R2, Backblaze B2, and MinIO.
+    # If your provider requires a specific region string, set it here.
+    region           = "auto"
+    force_path_style = true
+
+    # Hive-partitioned prefix — one directory per day, readable by DuckDB/Athena.
+    key_prefix = "tasmota/year=%Y/month=%m/day=%d/"
+
+    encoding.codec = "parquet"
+
+    # Flush a new Parquet file every 5 minutes (~300 rows at ~1 msg/min).
+    batch.timeout_secs = 300
+
+    [sinks.s3_parquet.auth]
+    access_key_id     = "${AWS_ACCESS_KEY_ID}"
+    secret_access_key = "${AWS_SECRET_ACCESS_KEY}"
