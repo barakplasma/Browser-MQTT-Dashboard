@@ -1,0 +1,50 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: connect-config
+  namespace: iot-pipeline
+data:
+  connect.yaml: |
+    input:
+      mqtt:
+        urls:
+          - tcp://broker.emqx.io:1883
+        topics:
+          - tele/tasmota_145ABA/SENSOR
+        client_id: connect-tasmota-k8s
+        qos: 1
+        clean_session: true
+
+    pipeline:
+      processors:
+        - mapping: |
+            root.time           = this.Time
+            root.temperature    = this.BME680.Temperature
+            root.humidity       = this.BME680.Humidity
+            root.dew_point      = this.BME680.DewPoint
+            root.pressure       = this.BME680.Pressure
+            root.gas_resistance = this.BME680.Gas
+            root.topic          = meta("mqtt_topic")
+
+    output:
+      aws_s3:
+        bucket: ${S3_BUCKET}
+        path: 'tasmota/year=${! now().ts_strftime("%Y") }/month=${! now().ts_strftime("%m") }/day=${! now().ts_strftime("%d") }/hour=${! now().ts_strftime("%H") }/${! uuid_v4() }.parquet'
+        region: il-central-1
+        credentials:
+          id: ${AWS_ACCESS_KEY_ID}
+          secret: ${AWS_SECRET_ACCESS_KEY}
+        batching:
+          count: 0
+          period: 1h
+          processors:
+            - parquet_encode:
+                schema:
+                  - {name: time,           type: UTF8}
+                  - {name: temperature,    type: DOUBLE}
+                  - {name: humidity,       type: DOUBLE}
+                  - {name: dew_point,      type: DOUBLE}
+                  - {name: pressure,       type: DOUBLE}
+                  - {name: gas_resistance, type: DOUBLE}
+                  - {name: topic,          type: UTF8}
+                default_compression: zstd

@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: connect
+  namespace: iot-pipeline
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: connect
+  template:
+    metadata:
+      labels:
+        app: connect
+    spec:
+      containers:
+        - name: connect
+          image: docker.redpanda.com/redpandadata/connect:4
+          args: ["run", "/etc/connect/connect.yaml"]
+          envFrom:
+            - secretRef:
+                name: vector-s3-credentials
+          volumeMounts:
+            - name: config
+              mountPath: /etc/connect
+              readOnly: true
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "64Mi"
+            limits:
+              cpu: "200m"
+              memory: "128Mi"
+      volumes:
+        - name: config
+          configMap:
+            name: connect-config
