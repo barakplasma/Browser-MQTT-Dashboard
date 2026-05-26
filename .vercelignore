@@ -8,3 +8,4 @@ yarn-error.log
 .env.local
 .env.*.local
 *.md
+k8s/
