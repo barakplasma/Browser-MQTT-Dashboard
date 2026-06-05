@@ -1,4 +1,4 @@
-Analyze historical BME680 sensor data from S3 and describe it in natural language.
+Analyze historical BME680 sensor data and Sensibo Pure air quality data from S3 and describe it in natural language.
 
 ## Setup
 
@@ -84,6 +84,32 @@ anomalies = con.execute(f"""
   ORDER BY abs(temperature - mu) DESC LIMIT 10
 """).fetchall()
 print("ANOMALIES:", json.dumps([{"time":str(r[0]),"temp":r[1],"hum":r[2]} for r in anomalies]))
+
+# Sensibo Pure — PM2.5 + IAQ (skip gracefully if no data yet)
+SENSIBO = "s3://iot-pipeline-tasmota-172952816010/sensibo/**/*.parquet"
+try:
+    sensibo_summary = con.execute(f"""
+      SELECT count(*), min(time::TIMESTAMP)::VARCHAR, max(time::TIMESTAMP)::VARCHAR,
+        round(avg(pm25),1), round(min(pm25),1), round(max(pm25),1),
+        round(avg(iaq),1),  round(min(iaq),1),  round(max(iaq),1)
+      FROM read_parquet('{SENSIBO}')
+      WHERE time::TIMESTAMP > '2026-01-01'
+    """).fetchone()
+    skeys = ["readings","first","last","pm25_avg","pm25_min","pm25_max","iaq_avg","iaq_min","iaq_max"]
+    print("SENSIBO_SUMMARY:", json.dumps(dict(zip(skeys, sensibo_summary))))
+
+    sensibo_daily = con.execute(f"""
+      SELECT strftime(time::TIMESTAMP,'%Y-%m-%d') AS day,
+        round(avg(pm25),1) AS pm25,
+        round(avg(iaq),1)  AS iaq,
+        count(*) AS n
+      FROM read_parquet('{SENSIBO}')
+      WHERE time::TIMESTAMP > '2026-01-01'
+      GROUP BY 1 ORDER BY 1
+    """).fetchall()
+    print("SENSIBO_DAILY:", json.dumps([{"day":r[0],"pm25":r[1],"iaq":r[2],"n":r[3]} for r in sensibo_daily]))
+except Exception as e:
+    print("SENSIBO_SUMMARY: null  # no data yet:", e)
 ```
 
 ## Output
@@ -93,9 +119,10 @@ After running the queries, synthesize into a natural language report:
 1. **Overview**: total readings, date range, any data gaps (days with low `n`)
 2. **Temperature**: range, 3-day trend (rising/stable/falling), peak and when
 3. **Humidity**: range, correlation with temp if notable, extremes
-4. **Air quality** (gas_resistance Ω): higher = cleaner; describe trend, identify worst/best days
+4. **Air quality** (gas_resistance Ω from BME680): higher = cleaner; describe trend, identify worst/best days
 5. **Pressure**: range and notable swings
 6. **Today so far**: hourly pattern from TODAY data
 7. **Anomalies**: call out outliers with context
+8. **Sensibo Pure** (if SENSIBO_SUMMARY available): PM2.5 µg/m³ (WHO limit: 15 µg/m³ annual, 25 µg/m³ 24h), IAQ score (0–50 excellent, 51–100 good, 101–150 lightly polluted, 151–200 moderately polluted), daily trend, compare to BME680 gas_resistance pattern
 
 If $ARGUMENTS includes `--chart`, also print ASCII sparklines (▁▂▃▄▅▆▇█) for daily temperature and humidity using the DAILY data.

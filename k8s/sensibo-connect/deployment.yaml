@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sensibo-connect
+  namespace: iot-pipeline
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sensibo-connect
+  template:
+    metadata:
+      labels:
+        app: sensibo-connect
+    spec:
+      containers:
+        - name: connect
+          image: docker.redpanda.com/redpandadata/connect:4
+          args: ["run", "/etc/connect/connect.yaml"]
+          envFrom:
+            - secretRef:
+                name: vector-s3-credentials
+            - secretRef:
+                name: sensibo-credentials
+          volumeMounts:
+            - name: config
+              mountPath: /etc/connect
+              readOnly: true
+          resources:
+            requests:
+              cpu: "20m"
+              memory: "32Mi"
+            limits:
+              cpu: "100m"
+              memory: "64Mi"
+      volumes:
+        - name: config
+          configMap:
+            name: sensibo-connect-config
